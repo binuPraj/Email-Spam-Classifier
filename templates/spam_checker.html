@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Spam Email Checker</title>
+    <style>
+        :root{ --bg:#f6f8fb; --card:#ffffff; --accent:#6c5ce7; --danger:#ff6b6b; --success:#12b886; --muted:#6b7280 }
+        body{ font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial; background:var(--bg); margin:0; padding:32px; color:#0f172a }
+        .container{ max-width:960px; margin:0 auto }
+        .card{ background:var(--card); border-radius:12px; box-shadow:0 6px 24px rgba(20,20,40,0.06); padding:28px }
+        h1{ margin:0 0 8px; font-size:24px }
+        p.lead{ margin:0 0 18px; color:var(--muted) }
+        textarea{ width:100%; min-height:220px; border-radius:8px; padding:14px; border:1px solid #e6edf3; font-size:14px; resize:vertical }
+        .row{ display:flex; gap:20px; align-items:flex-start }
+        .col{ flex:1 }
+        .actions{ display:flex; gap:12px; align-items:center; margin-top:12px }
+        .btn{ background:var(--accent); color:white; border:none; padding:12px 18px; border-radius:8px; cursor:pointer; font-weight:600 }
+        .btn.secondary{ background:#f1f5f9; color:#0f172a }
+        .result{ margin-top:18px; padding:16px; border-radius:10px; font-weight:600 }
+        .result.spam{ background: linear-gradient(90deg, rgba(255,107,107,0.12), rgba(255,107,107,0.06)); color:var(--danger); border:1px solid rgba(255,107,107,0.14) }
+        .result.ham{ background: linear-gradient(90deg, rgba(18,184,134,0.08), rgba(18,184,134,0.04)); color:var(--success); border:1px solid rgba(18,184,134,0.12) }
+        .samples{ font-size:13px; color:var(--muted); margin-top:12px }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <h1>Spam Email Checker</h1>
+            <p class="lead">Paste the email text below and press <strong>Check</strong>. The original text will be kept so you can iterate.</p>
+
+            <form action="/predict" method="post">
+                <div style="margin-bottom:12px; display:flex; gap:12px; align-items:center;">
+                    <label for="sample">Try examples:</label>
+                    <select id="sample" style="flex:1; padding:8px; border-radius:8px; border:1px solid #e6edf3;">
+                        <option value="">-- choose a sample email --</option>
+                        <optgroup label="Spam examples">
+                            <option value="You have been selected to receive $2,000,000. Click this link to claim now!">Free prize claim — urgent</option>
+                            <option value="Limited time offer! Buy now and get 90% off. Visit http://spam.example.com to redeem">Promotional phishing link</option>
+                        </optgroup>
+                        <optgroup label="Not-spam examples">
+                            <option value="Hi team, attached is the meeting agenda for tomorrow. Please review and let me know">Work meeting agenda</option>
+                            <option value="Dear customer, your order #12345 has shipped. Track it at our website">Order confirmation</option>
+                        </optgroup>
+                    </select>
+                    <button type="button" class="btn secondary" id="fillSample">Fill</button>
+                </div>
+
+                <label for="email">Email text</label>
+                <textarea id="email" name="email" placeholder="Paste the full email here">{{ email_text|default('') }}</textarea>
+                <div class="actions">
+                    <button class="btn" type="submit">Check</button>
+                    <button class="btn secondary" type="submit" formaction="/predict?clear=1">Check & Clear</button>
+                </div>
+
+                <div style="margin-top:18px">
+                    <div style="font-size:13px;color:var(--muted);">Result</div>
+                    {% if message %}
+                        <div class="result {{ 'spam' if is_spam else 'ham' }}">{{ message }}</div>
+                    {% else %}
+                        <div class="result" style="background:transparent;border:1px dashed #e6edf3;color:var(--muted);">No check performed yet</div>
+                    {% endif %}
+                </div>
+            </form>
+            <script>
+                const select = document.getElementById('sample');
+                const fill = document.getElementById('fillSample');
+                const ta = document.getElementById('email');
+                fill.addEventListener('click', ()=>{
+                    const v = select.value || '';
+                    if(v) ta.value = v;
+                });
+                // also populate textarea immediately when selecting an option
+                select.addEventListener('change', ()=>{
+                    const v = select.value || '';
+                    if(v) ta.value = v;
+                });
+            </script>
+        </div>
+    </div>
+</body>
+</html>
